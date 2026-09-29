@@ -10,11 +10,10 @@ import androidx.compose.ui.Modifier
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.example.myapplication.navigation.CharactersGraph
 import com.example.myapplication.navigation.LoginRoute
-import com.example.myapplication.navigation.charactersGraph
-import com.example.myapplication.navigation.locationsGraph
+import com.example.myapplication.navigation.MainRoute
 import com.example.myapplication.ui.screens.login.LoginScreen
+import com.example.myapplication.ui.screens.main.MainScreen
 import com.example.myapplication.ui.theme.MyApplicationTheme
 
 class MainActivity : ComponentActivity() {
@@ -35,15 +34,22 @@ class MainActivity : ComponentActivity() {
                         composable<LoginRoute> {
                             LoginScreen(
                                 onNavigateToCharacters = {
-                                    navController.navigate(CharactersGraph) {
+                                    navController.navigate(MainRoute) {
                                         popUpTo(LoginRoute) { inclusive = true }
                                     }
                                 }
                             )
                         }
 
-                        charactersGraph(navController)
-                        locationsGraph(navController)
+                        composable<MainRoute> {
+                            MainScreen(
+                                onLogout = {
+                                    navController.navigate(LoginRoute) {
+                                        popUpTo(navController.graph.id) { inclusive = true }
+                                    }
+                                }
+                            )
+                        }
                     }
                 }
             }
