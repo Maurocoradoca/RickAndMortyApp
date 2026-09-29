@@ -110,7 +110,7 @@ fun LoginScreen(onNavigateToCharacters: () -> Unit) {
         Spacer(modifier = Modifier.weight(1f))
 
         Image(
-            painter = rememberAsyncImagePainter("https://upload.wikimedia.org/wikipedia/commons/thumb/b/b1/Rick_and_Morty.svg/1200px-Rick_and_Morty.svg.png"),
+            painter = rememberAsyncImagePainter("https://upload.wikimedia.org/wikipedia/commons/b/b1/Rick_and_Morty.svg.png"),
             contentDescription = "Logo de Rick y Morty",
             modifier = Modifier
                 .fillMaxWidth()

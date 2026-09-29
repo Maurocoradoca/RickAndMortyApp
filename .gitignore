@@ -32,3 +32,8 @@ google-services.json
 
 # Android Profiling
 *.hprof
+Laboratorio4/
+Laboratorio5/
+Laboratorio6/
+turnos-app/
+.DS_Store
