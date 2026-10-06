@@ -1,6 +1,7 @@
 package com.example.myapplication.ui.screens.locations
 
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -15,16 +16,23 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.myapplication.Location
-import com.example.myapplication.LocationDb
+import com.example.myapplication.ui.components.ErrorLayout
+import com.example.myapplication.ui.components.LoadingLayout
+import com.example.myapplication.viewmodel.LocationsViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun LocationsScreen(onLocationClick: (Int) -> Unit) {
-    val locations = remember { LocationDb().getAllLocations() }
+fun LocationsScreen(
+    onLocationClick: (Int) -> Unit,
+    viewModel: LocationsViewModel = viewModel()
+) {
+    val uiState by viewModel.uiState.collectAsState()
 
     Scaffold(
         topBar = {
@@ -37,17 +45,30 @@ fun LocationsScreen(onLocationClick: (Int) -> Unit) {
             )
         }
     ) { paddingValues ->
-        LazyColumn(
+        Box(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
         ) {
-            items(locations) { location ->
-                LocationListItem(
-                    location = location,
-                    onClick = { onLocationClick(location.id) }
+            when {
+                uiState.hasError -> ErrorLayout(
+                    message = "Error al obtener listado de ubicaciones.\nIntenta de nuevo",
+                    onRetryClick = { viewModel.loadLocations() }
                 )
-                HorizontalDivider(color = MaterialTheme.colorScheme.surfaceVariant)
+
+                uiState.isLoading -> LoadingLayout(
+                    onClick = { viewModel.onLoadingClick() }
+                )
+
+                else -> LazyColumn(modifier = Modifier.fillMaxSize()) {
+                    items(uiState.data) { location ->
+                        LocationListItem(
+                            location = location,
+                            onClick = { onLocationClick(location.id) }
+                        )
+                        HorizontalDivider(color = MaterialTheme.colorScheme.surfaceVariant)
+                    }
+                }
             }
         }
     }

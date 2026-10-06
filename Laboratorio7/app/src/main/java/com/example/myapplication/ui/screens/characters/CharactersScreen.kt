@@ -1,6 +1,7 @@
 package com.example.myapplication.ui.screens.characters
 
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -20,20 +21,27 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
 import com.example.myapplication.Character
-import com.example.myapplication.CharacterDb
+import com.example.myapplication.ui.components.ErrorLayout
+import com.example.myapplication.ui.components.LoadingLayout
+import com.example.myapplication.viewmodel.CharactersViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun CharactersScreen(onCharacterClick: (Int) -> Unit) {
-    val characters = remember { CharacterDb().getAllCharacters() }
+fun CharactersScreen(
+    onCharacterClick: (Int) -> Unit,
+    viewModel: CharactersViewModel = viewModel()
+) {
+    val uiState by viewModel.uiState.collectAsState()
 
     Scaffold(
         topBar = {
@@ -46,17 +54,30 @@ fun CharactersScreen(onCharacterClick: (Int) -> Unit) {
             )
         }
     ) { paddingValues ->
-        LazyColumn(
+        Box(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
         ) {
-            items(characters) { character ->
-                CharacterListItem(
-                    character = character,
-                    onClick = { onCharacterClick(character.id) }
+            when {
+                uiState.hasError -> ErrorLayout(
+                    message = "Error al obtener listado de personajes.\nIntenta de nuevo",
+                    onRetryClick = { viewModel.loadCharacters() }
                 )
-                HorizontalDivider(color = MaterialTheme.colorScheme.surfaceVariant)
+
+                uiState.isLoading -> LoadingLayout(
+                    onClick = { viewModel.onLoadingClick() }
+                )
+
+                else -> LazyColumn(modifier = Modifier.fillMaxSize()) {
+                    items(uiState.data) { character ->
+                        CharacterListItem(
+                            character = character,
+                            onClick = { onCharacterClick(character.id) }
+                        )
+                        HorizontalDivider(color = MaterialTheme.colorScheme.surfaceVariant)
+                    }
+                }
             }
         }
     }
