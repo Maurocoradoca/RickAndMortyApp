@@ -12,8 +12,10 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.myapplication.navigation.LoginRoute
 import com.example.myapplication.navigation.MainRoute
+import com.example.myapplication.navigation.SplashRoute
 import com.example.myapplication.ui.screens.login.LoginScreen
 import com.example.myapplication.ui.screens.main.MainScreen
+import com.example.myapplication.ui.screens.splash.SplashScreen
 import com.example.myapplication.ui.theme.MyApplicationTheme
 
 class MainActivity : ComponentActivity() {
@@ -29,8 +31,23 @@ class MainActivity : ComponentActivity() {
 
                     NavHost(
                         navController = navController,
-                        startDestination = LoginRoute
+                        startDestination = SplashRoute
                     ) {
+                        composable<SplashRoute> {
+                            SplashScreen(
+                                onNavigateToMain = {
+                                    navController.navigate(MainRoute) {
+                                        popUpTo(SplashRoute) { inclusive = true }
+                                    }
+                                },
+                                onNavigateToLogin = {
+                                    navController.navigate(LoginRoute) {
+                                        popUpTo(SplashRoute) { inclusive = true }
+                                    }
+                                }
+                            )
+                        }
+
                         composable<LoginRoute> {
                             LoginScreen(
                                 onNavigateToCharacters = {

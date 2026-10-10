@@ -56,4 +56,5 @@ dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.3")
     implementation("io.coil-kt:coil-compose:2.6.0")
     implementation("androidx.compose.material:material-icons-core")
+    implementation("androidx.datastore:datastore-preferences:1.1.1")
 }
