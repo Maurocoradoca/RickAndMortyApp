@@ -6,22 +6,37 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.res.painterResource
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.myapplication.R
+import com.example.myapplication.viewmodel.LoginViewModel
 
 @Composable
-fun LoginScreen(onNavigateToCharacters: () -> Unit) {
+fun LoginScreen(
+    onNavigateToCharacters: () -> Unit,
+    viewModel: LoginViewModel = viewModel()
+) {
+    var name by rememberSaveable { mutableStateOf("") }
+
     Column(
-        modifier = Modifier.fillMaxSize(),
+        modifier = Modifier
+            .fillMaxSize()
+            .imePadding(),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Spacer(modifier = Modifier.weight(1f))
@@ -36,11 +51,24 @@ fun LoginScreen(onNavigateToCharacters: () -> Unit) {
             contentScale = ContentScale.Fit
         )
 
+        OutlinedTextField(
+            value = name,
+            onValueChange = { name = it },
+            label = { Text("Nombre") },
+            singleLine = true,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 32.dp)
+        )
+
         Button(
-            onClick = onNavigateToCharacters,
-            modifier = Modifier.padding(16.dp)
+            onClick = { viewModel.login(name, onNavigateToCharacters) },
+            enabled = name.isNotBlank(),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 32.dp, vertical = 16.dp)
         ) {
-            Text(text = "Empezar")
+            Text(text = "Iniciar sesión")
         }
 
         Spacer(modifier = Modifier.weight(1f))
