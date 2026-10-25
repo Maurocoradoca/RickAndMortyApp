@@ -1,17 +1,20 @@
 package com.example.myapplication.viewmodel
 
+import android.app.Application
+import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.SavedStateHandle
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.toRoute
 import com.example.myapplication.Location
-import com.example.myapplication.LocationDb
+import com.example.myapplication.data.AppDatabase
+import com.example.myapplication.data.toModel
 import com.example.myapplication.navigation.LocationDetailsRoute
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
@@ -22,12 +25,13 @@ data class LocationDetailsUiState(
 )
 
 class LocationDetailsViewModel(
+    application: Application,
     savedStateHandle: SavedStateHandle
-) : ViewModel() {
+) : AndroidViewModel(application) {
 
     private val locationId: Int = savedStateHandle.toRoute<LocationDetailsRoute>().id
 
-    private val locationDb = LocationDb()
+    private val locationDao = AppDatabase.getInstance(application).locationDao()
 
     private val _uiState = MutableStateFlow(LocationDetailsUiState())
     val uiState: StateFlow<LocationDetailsUiState> = _uiState.asStateFlow()
@@ -42,11 +46,14 @@ class LocationDetailsViewModel(
         loadJob?.cancel()
         loadJob = viewModelScope.launch {
             _uiState.value = LocationDetailsUiState(isLoading = true)
-            delay(2000)
-            _uiState.value = LocationDetailsUiState(
-                isLoading = false,
-                data = locationDb.getLocationById(locationId)
-            )
+            locationDao.getById(locationId)
+                .map { it?.toModel() }
+                .catch {
+                    _uiState.value = LocationDetailsUiState(isLoading = false, hasError = true)
+                }
+                .collect { location ->
+                    _uiState.value = LocationDetailsUiState(isLoading = false, data = location)
+                }
         }
     }
 

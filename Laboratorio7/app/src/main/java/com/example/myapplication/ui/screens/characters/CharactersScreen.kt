@@ -13,8 +13,13 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -31,6 +36,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
 import com.example.myapplication.Character
+import com.example.myapplication.ui.components.EmptyLayout
 import com.example.myapplication.ui.components.ErrorLayout
 import com.example.myapplication.ui.components.LoadingLayout
 import com.example.myapplication.viewmodel.CharactersViewModel
@@ -47,6 +53,19 @@ fun CharactersScreen(
         topBar = {
             TopAppBar(
                 title = { Text("Characters") },
+                actions = {
+                    IconButton(onClick = { viewModel.toggleFavoritesFilter() }) {
+                        Icon(
+                            imageVector = if (uiState.showOnlyFavorites) {
+                                Icons.Filled.Favorite
+                            } else {
+                                Icons.Filled.FavoriteBorder
+                            },
+                            contentDescription = "Mostrar solo favoritos",
+                            tint = MaterialTheme.colorScheme.onPrimaryContainer
+                        )
+                    }
+                },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = MaterialTheme.colorScheme.primaryContainer,
                     titleContentColor = MaterialTheme.colorScheme.onPrimaryContainer
@@ -69,11 +88,20 @@ fun CharactersScreen(
                     onClick = { viewModel.onLoadingClick() }
                 )
 
+                uiState.data.isEmpty() -> EmptyLayout(
+                    message = if (uiState.showOnlyFavorites) {
+                        "No tienes personajes favoritos.\nToca el corazón de un personaje para agregarlo."
+                    } else {
+                        "No hay elementos para mostrar."
+                    }
+                )
+
                 else -> LazyColumn(modifier = Modifier.fillMaxSize()) {
-                    items(uiState.data) { character ->
+                    items(uiState.data, key = { it.id }) { character ->
                         CharacterListItem(
                             character = character,
-                            onClick = { onCharacterClick(character.id) }
+                            onClick = { onCharacterClick(character.id) },
+                            onFavoriteClick = { viewModel.toggleFavorite(character) }
                         )
                         HorizontalDivider(color = MaterialTheme.colorScheme.surfaceVariant)
                     }
@@ -84,7 +112,11 @@ fun CharactersScreen(
 }
 
 @Composable
-fun CharacterListItem(character: Character, onClick: () -> Unit) {
+fun CharacterListItem(
+    character: Character,
+    onClick: () -> Unit,
+    onFavoriteClick: () -> Unit
+) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -102,7 +134,7 @@ fun CharacterListItem(character: Character, onClick: () -> Unit) {
 
         Spacer(modifier = Modifier.width(16.dp))
 
-        Column {
+        Column(modifier = Modifier.weight(1f)) {
             Text(
                 text = character.name,
                 fontWeight = FontWeight.Bold,
@@ -112,6 +144,26 @@ fun CharacterListItem(character: Character, onClick: () -> Unit) {
                 text = "${character.species} - ${character.status}",
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+
+        IconButton(onClick = onFavoriteClick) {
+            Icon(
+                imageVector = if (character.isFavorite) {
+                    Icons.Filled.Favorite
+                } else {
+                    Icons.Filled.FavoriteBorder
+                },
+                contentDescription = if (character.isFavorite) {
+                    "Quitar de favoritos"
+                } else {
+                    "Marcar como favorito"
+                },
+                tint = if (character.isFavorite) {
+                    MaterialTheme.colorScheme.error
+                } else {
+                    MaterialTheme.colorScheme.onSurfaceVariant
+                }
             )
         }
     }
