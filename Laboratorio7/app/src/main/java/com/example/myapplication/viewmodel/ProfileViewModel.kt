@@ -3,6 +3,8 @@ package com.example.myapplication.viewmodel
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.myapplication.data.AppDatabase
+import com.example.myapplication.data.DataSyncRepository
 import com.example.myapplication.data.UserPreferencesRepository
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -12,9 +14,10 @@ import kotlinx.coroutines.launch
 
 class ProfileViewModel(application: Application) : AndroidViewModel(application) {
 
-    private val repository = UserPreferencesRepository(application)
+    private val userPreferences = UserPreferencesRepository(application)
+    private val dataSync = DataSyncRepository(AppDatabase.getInstance(application))
 
-    val userName: StateFlow<String> = repository.userName
+    val userName: StateFlow<String> = userPreferences.userName
         .map { it ?: "" }
         .stateIn(
             scope = viewModelScope,
@@ -24,7 +27,8 @@ class ProfileViewModel(application: Application) : AndroidViewModel(application)
 
     fun logout(onLoggedOut: () -> Unit) {
         viewModelScope.launch {
-            repository.clearName()
+            userPreferences.clearName()
+            dataSync.clearAll()
             onLoggedOut()
         }
     }

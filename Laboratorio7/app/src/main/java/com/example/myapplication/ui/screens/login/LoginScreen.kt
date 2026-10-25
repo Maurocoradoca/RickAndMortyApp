@@ -9,9 +9,11 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -32,6 +34,7 @@ fun LoginScreen(
     viewModel: LoginViewModel = viewModel()
 ) {
     var name by rememberSaveable { mutableStateOf("") }
+    val isLoading by viewModel.isLoading.collectAsState()
 
     Column(
         modifier = Modifier
@@ -56,6 +59,7 @@ fun LoginScreen(
             onValueChange = { name = it },
             label = { Text("Nombre") },
             singleLine = true,
+            enabled = !isLoading,
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 32.dp)
@@ -63,12 +67,20 @@ fun LoginScreen(
 
         Button(
             onClick = { viewModel.login(name, onNavigateToCharacters) },
-            enabled = name.isNotBlank(),
+            enabled = name.isNotBlank() && !isLoading,
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 32.dp, vertical = 16.dp)
         ) {
             Text(text = "Iniciar sesión")
+        }
+
+        if (isLoading) {
+            CircularProgressIndicator()
+            Text(
+                text = "Sincronizando datos...",
+                modifier = Modifier.padding(top = 8.dp)
+            )
         }
 
         Spacer(modifier = Modifier.weight(1f))
