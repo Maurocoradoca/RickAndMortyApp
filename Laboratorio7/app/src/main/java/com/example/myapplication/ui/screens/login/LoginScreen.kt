@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -23,6 +24,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.myapplication.R
@@ -31,10 +33,10 @@ import com.example.myapplication.viewmodel.LoginViewModel
 @Composable
 fun LoginScreen(
     onNavigateToCharacters: () -> Unit,
-    viewModel: LoginViewModel = viewModel()
+    viewModel: LoginViewModel = viewModel(factory = LoginViewModel.Factory)
 ) {
     var name by rememberSaveable { mutableStateOf("") }
-    val isLoading by viewModel.isLoading.collectAsState()
+    val uiState by viewModel.uiState.collectAsState()
 
     Column(
         modifier = Modifier
@@ -59,7 +61,7 @@ fun LoginScreen(
             onValueChange = { name = it },
             label = { Text("Nombre") },
             singleLine = true,
-            enabled = !isLoading,
+            enabled = !uiState.isLoading,
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 32.dp)
@@ -67,7 +69,7 @@ fun LoginScreen(
 
         Button(
             onClick = { viewModel.login(name, onNavigateToCharacters) },
-            enabled = name.isNotBlank() && !isLoading,
+            enabled = name.isNotBlank() && !uiState.isLoading,
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 32.dp, vertical = 16.dp)
@@ -75,11 +77,20 @@ fun LoginScreen(
             Text(text = "Iniciar sesión")
         }
 
-        if (isLoading) {
+        if (uiState.isLoading) {
             CircularProgressIndicator()
             Text(
-                text = "Sincronizando datos...",
+                text = "Descargando datos...",
                 modifier = Modifier.padding(top = 8.dp)
+            )
+        }
+
+        uiState.errorMessage?.let { message ->
+            Text(
+                text = message,
+                color = MaterialTheme.colorScheme.error,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.padding(horizontal = 32.dp)
             )
         }
 

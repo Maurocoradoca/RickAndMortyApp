@@ -37,7 +37,7 @@ import com.example.myapplication.viewmodel.CharacterDetailsViewModel
 @Composable
 fun CharacterDetailsScreen(
     onBackClick: () -> Unit,
-    viewModel: CharacterDetailsViewModel = viewModel()
+    viewModel: CharacterDetailsViewModel = viewModel(factory = CharacterDetailsViewModel.Factory)
 ) {
     val uiState by viewModel.uiState.collectAsState()
 

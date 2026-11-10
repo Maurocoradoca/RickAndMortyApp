@@ -1,20 +1,24 @@
 package com.example.myapplication.viewmodel
 
 import android.app.Application
-import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.SavedStateHandle
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.ViewModelProvider.AndroidViewModelFactory.Companion.APPLICATION_KEY
+import androidx.lifecycle.createSavedStateHandle
 import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.viewmodel.initializer
+import androidx.lifecycle.viewmodel.viewModelFactory
 import androidx.navigation.toRoute
 import com.example.myapplication.Character
-import com.example.myapplication.data.AppDatabase
-import com.example.myapplication.data.toModel
+import com.example.myapplication.data.ServiceLocator
+import com.example.myapplication.data.repository.CharacterRepository
 import com.example.myapplication.navigation.CharacterDetailsRoute
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
@@ -25,13 +29,11 @@ data class CharacterDetailsUiState(
 )
 
 class CharacterDetailsViewModel(
-    application: Application,
+    private val repository: CharacterRepository,
     savedStateHandle: SavedStateHandle
-) : AndroidViewModel(application) {
+) : ViewModel() {
 
     private val characterId: Int = savedStateHandle.toRoute<CharacterDetailsRoute>().id
-
-    private val characterDao = AppDatabase.getInstance(application).characterDao()
 
     private val _uiState = MutableStateFlow(CharacterDetailsUiState())
     val uiState: StateFlow<CharacterDetailsUiState> = _uiState.asStateFlow()
@@ -46,8 +48,7 @@ class CharacterDetailsViewModel(
         loadJob?.cancel()
         loadJob = viewModelScope.launch {
             _uiState.value = CharacterDetailsUiState(isLoading = true)
-            characterDao.getById(characterId)
-                .map { it?.toModel() }
+            repository.getCharacter(characterId)
                 .catch {
                     _uiState.value = CharacterDetailsUiState(isLoading = false, hasError = true)
                 }
@@ -60,12 +61,31 @@ class CharacterDetailsViewModel(
     fun toggleFavorite() {
         val character = _uiState.value.data ?: return
         viewModelScope.launch {
-            characterDao.updateFavorite(character.id, !character.isFavorite)
+            repository.setFavorite(character.id, !character.isFavorite)
+        }
+    }
+
+    fun deleteCharacter(onDeleted: () -> Unit) {
+        viewModelScope.launch {
+            repository.deleteCharacter(characterId)
+            onDeleted()
         }
     }
 
     fun onLoadingClick() {
         loadJob?.cancel()
         _uiState.update { it.copy(isLoading = false, hasError = true) }
+    }
+
+    companion object {
+        val Factory: ViewModelProvider.Factory = viewModelFactory {
+            initializer {
+                val app = this[APPLICATION_KEY] as Application
+                CharacterDetailsViewModel(
+                    ServiceLocator.characterRepository(app),
+                    createSavedStateHandle()
+                )
+            }
+        }
     }
 }

@@ -45,7 +45,7 @@ import com.example.myapplication.viewmodel.CharactersViewModel
 @Composable
 fun CharactersScreen(
     onCharacterClick: (Int) -> Unit,
-    viewModel: CharactersViewModel = viewModel()
+    viewModel: CharactersViewModel = viewModel(factory = CharactersViewModel.Factory)
 ) {
     val uiState by viewModel.uiState.collectAsState()
 

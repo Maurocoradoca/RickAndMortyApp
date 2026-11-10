@@ -1,11 +1,15 @@
 package com.example.myapplication.viewmodel
 
 import android.app.Application
-import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.ViewModelProvider.AndroidViewModelFactory.Companion.APPLICATION_KEY
 import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.viewmodel.initializer
+import androidx.lifecycle.viewmodel.viewModelFactory
 import com.example.myapplication.Character
-import com.example.myapplication.data.AppDatabase
-import com.example.myapplication.data.toModel
+import com.example.myapplication.data.ServiceLocator
+import com.example.myapplication.data.repository.CharacterRepository
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -22,9 +26,9 @@ data class CharactersUiState(
     val showOnlyFavorites: Boolean = false
 )
 
-class CharactersViewModel(application: Application) : AndroidViewModel(application) {
-
-    private val characterDao = AppDatabase.getInstance(application).characterDao()
+class CharactersViewModel(
+    private val repository: CharacterRepository
+) : ViewModel() {
 
     private val showOnlyFavorites = MutableStateFlow(false)
 
@@ -44,8 +48,7 @@ class CharactersViewModel(application: Application) : AndroidViewModel(applicati
                 isLoading = true,
                 showOnlyFavorites = showOnlyFavorites.value
             )
-            combine(characterDao.getAll(), showOnlyFavorites) { entities, onlyFavorites ->
-                val characters = entities.map { it.toModel() }
+            combine(repository.getCharacters(), showOnlyFavorites) { characters, onlyFavorites ->
                 CharactersUiState(
                     isLoading = false,
                     data = if (onlyFavorites) characters.filter { it.isFavorite } else characters,
@@ -61,7 +64,7 @@ class CharactersViewModel(application: Application) : AndroidViewModel(applicati
 
     fun toggleFavorite(character: Character) {
         viewModelScope.launch {
-            characterDao.updateFavorite(character.id, !character.isFavorite)
+            repository.setFavorite(character.id, !character.isFavorite)
         }
     }
 
@@ -72,5 +75,14 @@ class CharactersViewModel(application: Application) : AndroidViewModel(applicati
     fun onLoadingClick() {
         loadJob?.cancel()
         _uiState.update { it.copy(isLoading = false, hasError = true) }
+    }
+
+    companion object {
+        val Factory: ViewModelProvider.Factory = viewModelFactory {
+            initializer {
+                val app = this[APPLICATION_KEY] as Application
+                CharactersViewModel(ServiceLocator.characterRepository(app))
+            }
+        }
     }
 }

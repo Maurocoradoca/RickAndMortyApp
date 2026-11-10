@@ -30,7 +30,7 @@ import com.example.myapplication.viewmodel.LocationsViewModel
 @Composable
 fun LocationsScreen(
     onLocationClick: (Int) -> Unit,
-    viewModel: LocationsViewModel = viewModel()
+    viewModel: LocationsViewModel = viewModel(factory = LocationsViewModel.Factory)
 ) {
     val uiState by viewModel.uiState.collectAsState()
 

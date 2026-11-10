@@ -2,9 +2,26 @@ package com.example.myapplication.data
 
 import com.example.myapplication.Character
 import com.example.myapplication.Location
+import com.example.myapplication.data.remote.CharacterDto
+import com.example.myapplication.data.remote.LocationDto
 
-// Entity -> Model (lo usan los ViewModels al leer de Room)
-fun CharacterEntity.toModel(): Character = Character(
+fun CharacterDto.toEntity() = CharacterEntity(
+    id = id,
+    name = name,
+    status = status,
+    species = species,
+    gender = gender,
+    image = image
+)
+
+fun LocationDto.toEntity() = LocationEntity(
+    id = id,
+    name = name,
+    type = type,
+    dimension = dimension
+)
+
+fun CharacterEntity.toModel() = Character(
     id = id,
     name = name,
     status = status,
@@ -14,27 +31,10 @@ fun CharacterEntity.toModel(): Character = Character(
     isFavorite = isFavorite
 )
 
-fun LocationEntity.toModel(): Location = Location(
+fun LocationEntity.toModel() = Location(
     id = id,
     name = name,
     type = type,
-    dimension = dimension
-)
-
-// Model -> Entity (lo usa la sincronización inicial)
-fun Character.toEntity(): CharacterEntity = CharacterEntity(
-    id = id,
-    name = name,
-    status = status,
-    species = species,
-    gender = gender,
-    image = image,
+    dimension = dimension,
     isFavorite = isFavorite
-)
-
-fun Location.toEntity(): LocationEntity = LocationEntity(
-    id = id,
-    name = name,
-    type = type,
-    dimension = dimension
 )

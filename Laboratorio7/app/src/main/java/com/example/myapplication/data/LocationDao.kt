@@ -9,7 +9,7 @@ import kotlinx.coroutines.flow.Flow
 @Dao
 interface LocationDao {
 
-    @Insert(onConflict = OnConflictStrategy.IGNORE)
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertAll(locations: List<LocationEntity>)
 
     @Query("SELECT * FROM locations ORDER BY id")
@@ -18,8 +18,8 @@ interface LocationDao {
     @Query("SELECT * FROM locations WHERE id = :id")
     fun getById(id: Int): Flow<LocationEntity?>
 
-    @Query("SELECT COUNT(*) FROM locations")
-    suspend fun count(): Int
+    @Query("UPDATE locations SET isFavorite = :isFavorite WHERE id = :id")
+    suspend fun updateFavorite(id: Int, isFavorite: Boolean)
 
     @Query("DELETE FROM locations")
     suspend fun deleteAll()

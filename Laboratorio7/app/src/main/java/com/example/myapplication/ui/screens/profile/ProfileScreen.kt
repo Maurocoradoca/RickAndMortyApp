@@ -34,7 +34,7 @@ import com.example.myapplication.viewmodel.ProfileViewModel
 @Composable
 fun ProfileScreen(
     onLogoutClick: () -> Unit,
-    viewModel: ProfileViewModel = viewModel()
+    viewModel: ProfileViewModel = viewModel(factory = ProfileViewModel.Factory)
 ) {
     val userName by viewModel.userName.collectAsState()
 
