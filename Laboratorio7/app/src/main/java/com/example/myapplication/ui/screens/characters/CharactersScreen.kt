@@ -8,15 +8,15 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -30,12 +30,11 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import coil.compose.AsyncImage
 import com.example.myapplication.Character
+import com.example.myapplication.ui.components.CharacterAvatar
 import com.example.myapplication.ui.components.EmptyLayout
 import com.example.myapplication.ui.components.ErrorLayout
 import com.example.myapplication.ui.components.LoadingLayout
@@ -45,6 +44,7 @@ import com.example.myapplication.viewmodel.CharactersViewModel
 @Composable
 fun CharactersScreen(
     onCharacterClick: (Int) -> Unit,
+    onAddClick: () -> Unit,
     viewModel: CharactersViewModel = viewModel(factory = CharactersViewModel.Factory)
 ) {
     val uiState by viewModel.uiState.collectAsState()
@@ -71,6 +71,11 @@ fun CharactersScreen(
                     titleContentColor = MaterialTheme.colorScheme.onPrimaryContainer
                 )
             )
+        },
+        floatingActionButton = {
+            FloatingActionButton(onClick = onAddClick) {
+                Icon(imageVector = Icons.Filled.Add, contentDescription = "Crear personaje")
+            }
         }
     ) { paddingValues ->
         Box(
@@ -124,13 +129,7 @@ fun CharacterListItem(
             .padding(16.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        AsyncImage(
-            model = character.image,
-            contentDescription = "Imagen de ${character.name}",
-            modifier = Modifier
-                .size(60.dp)
-                .clip(CircleShape)
-        )
+        CharacterAvatar(image = character.image, name = character.name, size = 60.dp)
 
         Spacer(modifier = Modifier.width(16.dp))
 

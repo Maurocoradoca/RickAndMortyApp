@@ -31,3 +31,8 @@ data class LocationDetailsRoute(val id: Int)
 
 @Serializable
 object ProfileRoute
+
+const val NEW_CHARACTER_ID = Int.MIN_VALUE
+
+@Serializable
+data class CharacterFormRoute(val id: Int = NEW_CHARACTER_ID)

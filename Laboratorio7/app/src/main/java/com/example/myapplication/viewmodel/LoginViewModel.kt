@@ -18,6 +18,8 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import android.util.Log
+import io.ktor.client.plugins.ClientRequestException
 
 data class LoginUiState(
     val isLoading: Boolean = false,
@@ -50,8 +52,15 @@ class LoginViewModel(
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Exception) {
+                Log.e("LoginViewModel", "Falló la descarga de datos", e)
+                val tooManyRequests =
+                    e is ClientRequestException && e.response.status.value == 429
                 _uiState.value = LoginUiState(
-                    errorMessage = "No se pudieron descargar los datos.\nRevisa tu conexión a internet e intenta de nuevo."
+                    errorMessage = if (tooManyRequests) {
+                        "El servidor limitó las peticiones.\nEspera un minuto e intenta de nuevo."
+                    } else {
+                        "No se pudieron descargar los datos.\nRevisa tu conexión a internet e intenta de nuevo."
+                    }
                 )
             }
         }

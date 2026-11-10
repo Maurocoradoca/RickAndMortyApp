@@ -6,6 +6,8 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -46,6 +48,25 @@ fun LocationDetailsScreen(
                             contentDescription = "Volver atrás",
                             tint = MaterialTheme.colorScheme.onPrimaryContainer
                         )
+                    }
+                },
+                actions = {
+                    uiState.data?.let { current ->
+                        IconButton(onClick = { viewModel.toggleFavorite() }) {
+                            Icon(
+                                imageVector = if (current.isFavorite) {
+                                    Icons.Filled.Favorite
+                                } else {
+                                    Icons.Filled.FavoriteBorder
+                                },
+                                contentDescription = if (current.isFavorite) {
+                                    "Quitar de favoritas"
+                                } else {
+                                    "Marcar como favorita"
+                                },
+                                tint = MaterialTheme.colorScheme.onPrimaryContainer
+                            )
+                        }
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
